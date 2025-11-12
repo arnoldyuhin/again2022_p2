@@ -11,10 +11,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace Again.Runtime
-{
-    public class AgainSystem : MonoBehaviour
-    {
+namespace Again.Runtime {
+    public class AgainSystem : MonoBehaviour {
         [SerializeField] private Transform uiCanvas;
 
         private List<Command> _commands;
@@ -38,15 +36,17 @@ namespace Again.Runtime
 
         public static AgainSystem Instance { get; private set; }
 
-        private async void Awake()
-        {
+        private async void Awake() {
             if (Instance == null)
                 Instance = this;
             else
                 Destroy(transform.parent.gameObject);
 
+#if UNITY_EDITOR
             _setting = AssetDatabase.LoadAssetAtPath<AgainSystemSetting>("Assets/Settings/AgainSettings.asset");
-
+#else
+            _setting = Resources.Load<AgainSystemSetting>("Settings/AgainSettings");
+#endif
             _commands = new List<Command>();
             EventManager = new EventManager();
             DialogueManager = GetComponent<DialogueManager>();
@@ -65,18 +65,15 @@ namespace Again.Runtime
             SpineManager.UpdateSpineInfos(_setting.spineInfos.ToDictionary(info => info.Name, info => info));
         }
 
-        public async void Execute(string scriptName)
-        {
+        public async void Execute(string scriptName) {
             var commands = await SheetImporter.LoadScript(scriptName);
             Stop();
             CameraManager.Show();
             RunCommands(commands);
         }
 
-        public void RunCommands(List<Command> commands)
-        {
-            if (commands.Count == 0)
-            {
+        public void RunCommands(List<Command> commands) {
+            if (commands.Count == 0) {
                 Debug.Log("腳本沒有任何指令");
                 OnScriptFinished?.Invoke();
                 return;
@@ -87,17 +84,14 @@ namespace Again.Runtime
             NextCommand();
         }
 
-        public void NextCommand()
-        {
-            if (_isPause)
-            {
+        public void NextCommand() {
+            if (_isPause) {
                 Debug.Log("AgainSystem 暫停中");
                 return;
             }
 
             _currentCommandIndex++;
-            if (_currentCommandIndex < _commands.Count)
-            {
+            if (_currentCommandIndex < _commands.Count) {
                 _commands[_currentCommandIndex].IsSkip = _isSkip;
                 _commands[_currentCommandIndex].Execute();
 
@@ -116,14 +110,12 @@ namespace Again.Runtime
             OnScriptFinished?.Invoke();
         }
 
-        public void GoToCommand(Command command)
-        {
+        public void GoToCommand(Command command) {
             _currentCommandIndex = _commands.IndexOf(command) - 1;
             NextCommand();
         }
 
-        public void Stop()
-        {
+        public void Stop() {
             CameraManager.Reset();
             SpineManager.Reset();
             ImageManager.Reset();
@@ -136,31 +128,25 @@ namespace Again.Runtime
             _isSkip = false;
         }
 
-        public async void ReloadTranslation()
-        {
+        public async void ReloadTranslation() {
             DialogueManager.SetLocaleDict(await SheetImporter.LoadTranslation());
         }
 
-        public void SetLanguage(Language language)
-        {
+        public void SetLanguage(Language language) {
             DialogueManager.SetLanguage(language);
         }
 
-        public void SetLocaleDict(Dictionary<string, List<string>> dict)
-        {
+        public void SetLocaleDict(Dictionary<string, List<string>> dict) {
             DialogueManager.SetLocaleDict(dict);
         }
 
-        public void SetPause(bool isPause)
-        {
+        public void SetPause(bool isPause) {
             _isPause = isPause;
         }
 
-        public void SetSkip(bool isSkip)
-        {
+        public void SetSkip(bool isSkip) {
             _isSkip = isSkip;
-            if (isSkip)
-            {
+            if (isSkip) {
                 CameraManager.QuickComplete();
                 SpineManager.QuickComplete();
                 ImageManager.QuickComplete();
@@ -170,27 +156,22 @@ namespace Again.Runtime
             OnIsSkipChanged?.Invoke(isSkip);
         }
 
-        public bool GetSkip()
-        {
+        public bool GetSkip() {
             return _isSkip;
         }
 
-        public void SetAutoNext(bool isAutoNext)
-        {
+        public void SetAutoNext(bool isAutoNext) {
             _isAutoNext = isAutoNext;
             OnIsAutoNextChanged?.Invoke(isAutoNext);
         }
 
-        public bool GetAutoNext()
-        {
+        public bool GetAutoNext() {
             return _isAutoNext;
         }
 
         [ContextMenu("Save")]
-        public void Save()
-        {
-            var saveData = new AgainSystemSaveData
-            {
+        public void Save() {
+            var saveData = new AgainSystemSaveData {
                 cameraManagerSaveData = CameraManager.Save(),
                 imageManagerSaveData = ImageManager.Save(),
                 spineManagerSaveData = SpineManager.Save()
@@ -202,8 +183,7 @@ namespace Again.Runtime
         }
 
         [ContextMenu("Load")]
-        public void Load()
-        {
+        public void Load() {
             var path = Application.persistentDataPath + "/save.txt";
             var str = File.ReadAllText(path);
             ImageManager.Load(str);

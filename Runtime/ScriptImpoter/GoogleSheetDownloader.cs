@@ -3,22 +3,18 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Unity.Plastic.Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Again.Runtime.ScriptImpoter
-{
-    public class GoogleSheetDownloader
-    {
+namespace Again.Runtime.ScriptImpoter {
+    public class GoogleSheetDownloader {
         private static readonly HttpClient client = new();
 
-        public static void Download(string sheetID, string apiKey)
-        {
-            var scripts =  LoadScripts(sheetID, apiKey);
+        public static void Download(string sheetID, string apiKey) {
+            var scripts = LoadScripts(sheetID, apiKey);
             var URLFormat =
                 @"https://docs.google.com/spreadsheets/d/{0}/gviz/tq?tqx=out:csv&sheet={1}";
-            foreach (var script in scripts)
-            {
+            foreach (var script in scripts) {
                 var url = string.Format(URLFormat, sheetID, script);
                 var data = FetchData(url);
                 var path = $"Assets/Resources/CSV/{script}.csv";
@@ -26,8 +22,7 @@ namespace Again.Runtime.ScriptImpoter
             }
         }
 
-        private static  List<string> LoadScripts(string sheetID, string apiKey)
-        {
+        private static List<string> LoadScripts(string sheetID, string apiKey) {
             if (string.IsNullOrEmpty(sheetID) || string.IsNullOrEmpty(apiKey))
                 return new List<string>();
 
@@ -45,12 +40,10 @@ namespace Again.Runtime.ScriptImpoter
         }
 
 
-        private static string FetchData(string url)
-        {
-            try
-            {
+        private static string FetchData(string url) {
+            try {
                 // 發送 HTTP 請求並獲取響應
-                var response =  client.GetAsync(url).Result;
+                var response = client.GetAsync(url).Result;
                 response.EnsureSuccessStatusCode();
 
                 // 讀取響應內容並指定使用 UTF-8 編碼
@@ -59,8 +52,7 @@ namespace Again.Runtime.ScriptImpoter
 
                 return responseString;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Console.WriteLine($"Error fetching data: {ex.Message}");
                 return null;
             }
